@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit-Games | Download-Page</title>
+    <style>
+        :root {
+            --amarelo: #FFD700;
+            --preto: #121212;
+            --branco: #ffffff;
+            --raio: 25px; 
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            background-color: var(--branco);
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background-color: var(--amarelo);
+            padding: 30px;
+            text-align: center;
+            border-bottom: 6px solid var(--preto);
+        }
+
+        /* BARRA DE PESQUISA */
+        .search-area {
+            background-color: var(--preto);
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        #searchBar {
+            width: 80%;
+            max-width: 500px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            font-family: sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .game-card {
+            display: flex;
+            background: #f4f4f4;
+            border: 4px solid var(--preto);
+            border-radius: var(--raio);
+            margin-bottom: 15px;
+            cursor: pointer;
+            padding: 15px;
+            transition: 0.2s;
+        }
+
+        .game-card:hover { background: var(--amarelo); }
+
+        .thumb { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid #000; }
+
+        .info { padding-left: 20px; flex: 1; display: flex; align-items: center; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--branco);
+            width: 90%;
+            max-width: 450px;
+            border: 6px solid var(--preto);
+            border-radius: 35px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .capa-modal {
+            width: 100%;
+            max-height: 200px;
+            border-radius: 20px;
+            object-fit: cover;
+            margin-bottom: 25px;
+            border: 3px solid var(--preto);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li { margin-top: 15px; }
+
+        .btn-link {
+            display: block;
+            background: var(--preto);
+            color: var(--amarelo);
+            text-decoration: none;
+            padding: 20px;
+            font-weight: bold;
+            border-radius: 15px;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            border: 2px solid var(--preto);
+            transition: 0.2s;
+        }
+
+        .btn-link:hover { background: #333; color: #fff; }
+
+        .fechar { position: absolute; top: 10px; right: 20px; font-size: 2.5rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header><h1>BIT-GAMES</h1></header>
+
+<div class="search-area">
+    <input type="text" id="searchBar" placeholder="Procurar jogo ou app..." onkeyup="filtrar()">
+</div>
+
+<div class="container" id="vitrine"></div>
+
+<div id="modalJogo" class="modal">
+    <div class="modal-content">
+        <span class="fechar" onclick="fechar()">&times;</span>
+        <img id="imgM" src="" class="capa-modal">
+        <h2 id="titM" style="margin:0;"></h2>
+        <p id="descM" style="font-family: sans-serif; color: #444; margin: 15px 0;"></p>
+        
+        <nav>
+            <ul id="listaDownloads"></ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    const projetos = [
+        {
+            nome: "White Paint",
+            desc: "App de desenho (InDev).",
+            capa: "./imgs/WhitePaint_PNG.png",
+            arquivo: "./Archines/WhitePaint.rar"
+        },
+        {
+            nome: "Mundo dos Sonhos",
+            desc: "RPG épico de aventura.",
+            capa: "./imgs/MundoDosSonhos.png",
+            arquivo: "./Archines/MundoDosSonhos.rar"
+        }
+    ];
+
+    const vitrine = document.getElementById('vitrine');
+
+    function carregar() {
+        vitrine.innerHTML = ""; // Limpa antes de carregar
+        projetos.forEach((p, i) => {
+            vitrine.innerHTML += `
+                <div class="game-card" onclick="abrir(${i})">
+                    <img src="${p.capa}" class="thumb">
+                    <div class="info"><h2>${p.nome}</h2></div>
+                </div>`;
+        });
+    }
+
+    // FUNÇÃO DE FILTRAR ADICIONADA
+    function filtrar() {
+        let input = document.getElementById('searchBar').value.toLowerCase();
+        let cards = document.getElementsByClassName('game-card');
+        
+        for (let i = 0; i < cards.length; i++) {
+            let nomeJogo = cards[i].innerText.toLowerCase();
+            if (nomeJogo.includes(input)) {
+                cards[i].style.display = "flex";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+
+    function abrir(id) {
+        const p = projetos[id];
+        document.getElementById('imgM').src = p.capa;
+        document.getElementById('titM').innerText = p.nome;
+        document.getElementById('descM').innerText = p.desc;
+        
+        const lista = document.getElementById('listaDownloads');
+        lista.innerHTML = `
+            <li>
+                <a href="${p.arquivo}" download="${p.arquivo.replace('./','')}" class="btn-link">
+                    DOWNLOAD .RAR
+                </a>
+            </li>
+        `;
+
+        document.getElementById('modalJogo').style.display = 'flex';
+    }
+
+    function fechar() { document.getElementById('modalJogo').style.display = 'none'; }
+
+    carregar();
+</script>
+</body>
+</html>
