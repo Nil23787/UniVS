@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniVS | Pesquisa</title>
+    <style>
+        /* --- RESET GERAL --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #050505;
+        }
+
+        /* --- FUNDO ESPACIAL --- */
+        .SearchPage {
+            background-image: linear-gradient(135deg, rgb(30, 20, 80), rgb(120, 40, 100));
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            color: white;
+        }
+
+        /* --- BARRA DE MENU (LOGO E HOME) --- */
+        .bar_menu {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            justify-content: space-around; /* Separa a logo do botão home */
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        /* AJUSTE DA LOGO: Agora pequena e elegante */
+        .Bit_Games {
+            height: 45px; /* Tamanho controlado */
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+        }
+
+        .HomeButton {
+            width: 40px;
+            height: 40px;
+            transition: 0.3s;
+        }
+
+        .HomeButton:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px #00ffff);
+        }
+
+        /* --- CONTAINER DE BUSCA (GLASSMORPHISM) --- */
+        .search-container {
+            position: relative;
+            z-index: 10;
+            background-color: rgba(10, 10, 20, 0.7);
+            backdrop-filter: blur(15px);
+            width: 90%;
+            max-width: 800px;
+            margin-top: 110px;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50px;
+            color: white;
+            font-size: 18px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        /* --- GRADE DE RESULTADOS --- */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .game-card:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-5px);
+            border: 1px solid #00ffff;
+        }
+
+        .game-card img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+
+        /* --- CANVAS --- */
+        #espaco {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="SearchPage">
+
+    <canvas id="espaco"></canvas>
+
+    <div class="bar_menu">
+        <img src="../../imgs/Bit-Games_logo.png" class="Bit_Games" alt="Logo">
+        <a href="../../index.html"><img src="../../imgs/button_home.png" class="HomeButton" alt="Home"></a>
+    </div>
+
+    <div class="search-container">
+        <h1>Pesquiza De Jogos</h1>
+        
+        <div class="input-wrapper">
+            <input type="text" id="gameSearch" placeholder="Qual jogo você procura?" oninput="realizarBusca()">
+        </div>
+
+        <div id="results" class="results-grid">
+            </div>
+    </div>
+
+    <script>
+        // 1. BANCO DE DATOS (Adicione seus jogos aqui)
+        const bancoDeJogos = [
+            { nome: "White Paint", link: "./White_Paint.html", img: "../../imgs/WhitePaint_PNG.png" },
+            { nome: "Apples", link: "./Apples.html", img: "../../imgs/Apples_PNG.png" },
+            { nome: "Cristal Snack", link: "./CristalSnack.html", img: "../../imgs/Cristal_snack.png" }
+        ];
+
+        // 2. FUNÇÃO DE BUSCA REAL
+        function realizarBusca() {
+            const termo = document.getElementById('gameSearch').value.toLowerCase();
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = "";
+
+            if (termo === "") {
+                resultsContainer.innerHTML = "<p style='grid-column: 1/-1; opacity: 0.5;'>Pronto para busca...</p>";
+                return;
+            }
+
+            const filtrados = bancoDeJogos.filter(jogo => 
+                jogo.nome.toLowerCase().includes(termo)
+            );
+
+            if (filtrados.length > 0) {
+                filtrados.forEach(jogo => {
+                    resultsContainer.innerHTML += `
+                        <a href="${jogo.link}" class="game-card">
+                            <img src="${jogo.img}" alt="${jogo.nome}">
+                            <p>${jogo.nome}</p>
+                        </a>
+                    `;
+                });
+            } else {
+                resultsContainer.innerHTML = "<p style='grid-column: 1/-1;'>Nenhum jogo encontrado nessa órbita.</p>";
+            }
+        }
+
+        // 3. ANIMAÇÃO DAS ESTRELAS (PRO)
+        const canvas = document.getElementById('espaco');
+        const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+
+        let stars = [];
+        for(let i=0; i<250; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 1.8,
+                speedY: Math.random() * 0.4 + 0.1,
+                speedX: (Math.random() - 0.5) * 0.1,
+                opacity: Math.random(),
+                blinkSpeed: Math.random() * 0.02
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(s => {
+                s.opacity += s.blinkSpeed;
+                if(s.opacity > 1 || s.opacity < 0) s.blinkSpeed *= -1;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.opacity)})`;
+                ctx.fill();
+                s.y += s.speedY; s.x += s.speedX;
+                if(s.y > canvas.height) { s.y = -5; s.x = Math.random() * canvas.width; }
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        // Inicia com mensagem de espera
+        realizarBusca();
+    </script>
+</body>
+</html>

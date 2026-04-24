@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniVS | Resgate gifts</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100vh; width: 100vw; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; }
+        .Home { background-image: linear-gradient(135deg, rgb(30, 20, 80), rgb(120, 40, 100)); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .bar_menu { position: fixed; top: 0; left: 0; width: 100%; height: 90px; display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .user_stats { position: absolute; left: 20px; display: flex; align-items: center; gap: 12px; }
+        .imo { width: 40px; height: auto; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); }
+        .points_counter { color: #00ffff; font-weight: bold; font-size: 22px; text-shadow: 0 0 10px rgba(0, 255, 255, 0.6); }
+        .Bit_Games { height: 55px; width: auto; }
+        .btn_back { position: absolute; right: 20px; width: 45px; cursor: pointer; transition: 0.3s; }
+        .btn_back:hover { transform: scale(1.1); filter: drop-shadow(0 0 15px #00ffff); }
+        .redeem-box { position: relative; z-index: 10; background-color: rgba(10, 10, 20, 0.85); backdrop-filter: blur(20px); width: 90%; max-width: 450px; padding: 40px; border-radius: 25px; border: 1px solid rgba(0, 255, 255, 0.3); text-align: center; box-shadow: 0 0 60px rgba(0, 0, 0, 0.9); }
+        h1 { color: #00ffff; font-size: 24px; letter-spacing: 4px; margin-bottom: 25px; }
+        .input-code { width: 100%; padding: 18px; background: rgba(0, 0, 0, 0.7); border: 2px solid rgb(120, 40, 100); border-radius: 15px; color: #00ffff; font-size: 24px; text-align: center; font-family: 'Courier New', monospace; outline: none; margin-bottom: 25px; }
+        .btn-redeem { background: linear-gradient(90deg, #1e1450, #782864); color: white; border: 1px solid #00ffff; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase; }
+        #mensagem { margin-top: 20px; font-weight: bold; font-size: 14px; min-height: 20px; }
+        #espaco { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    </style>
+</head>
+<body class="Home">
+
+    <canvas id="espaco"></canvas>
+
+    <div class="bar_menu">
+        <div class="user_stats">
+            <img src="../../imgs/moon_cristal.png" class="imo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1829/1829876.png'">
+            <span id="pontos-valor" class="points_counter">0</span>
+        </div>
+        <img src="../../imgs/Bit-Games_logo.png" class="Bit_Games" alt="Logo">
+        <a href="../../index.html">
+            <img src="../../imgs/button_home.png" class="btn_back" alt="Voltar">
+        </a>
+    </div>
+
+    <div class="redeem-box">
+        <h1>RESGATE DE CRISTAIS</h1>
+        <p style="color: rgba(255,255,255,0.6); margin-bottom: 25px;">Insira o ID para ganhar +4 Cristais</p>
+        <input type="text" id="inputCodigo" class="input-code" placeholder="____-____" maxlength="12">
+        <button class="btn-redeem" onclick="validarCodigo()">ATIVAR ID</button>
+        <div id="mensagem"></div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO GLOBAL ---
+        const idsValidos = ["17042026", "004986", "556797", "999666", "335433", "696969"];
+        let pontosAtuais = 0;
+        let codigosUsados = [];
+
+        // --- CARREGAMENTO INICIAL ---
+        window.onload = function() {
+            try {
+                const salvo = localStorage.getItem('userPoints');
+                pontosAtuais = salvo ? parseInt(salvo) : 0;
+                
+                const usados = localStorage.getItem('usedCodes');
+                codigosUsados = usados ? JSON.parse(usados) : [];
+                
+                document.getElementById('pontos-valor').innerText = pontosAtuais;
+                console.log("Dados carregados com sucesso!");
+            } catch (e) {
+                console.error("Erro ao carregar dados", e);
+            }
+            initStars();
+            updateStars();
+        };
+
+        // --- FUNÇÃO DE RESGATE ---
+        function validarCodigo() {
+            const inputField = document.getElementById('inputCodigo');
+            const msg = document.getElementById('mensagem');
+            const contador = document.getElementById('pontos-valor');
+
+            const codigoDigitado = inputField.value.trim().toUpperCase();
+
+            if (codigoDigitado === "") {
+                msg.style.color = "#ffffff";
+                msg.innerText = "DIGITE UM CÓDIGO PRIMEIRO!";
+                return;
+            }
+
+            if (codigosUsados.includes(codigoDigitado)) {
+                msg.style.color = "#ffcc00";
+                msg.innerText = "VOCÊ JÁ RESGATOU ESTE ID!";
+                return;
+            }
+
+            if (idsValidos.includes(codigoDigitado)) {
+                pontosAtuais += 4;
+                codigosUsados.push(codigoDigitado);
+
+                localStorage.setItem('userPoints', pontosAtuais);
+                localStorage.setItem('usedCodes', JSON.stringify(codigosUsados));
+
+                contador.innerText = pontosAtuais;
+                msg.style.color = "#00ffcc";
+                msg.innerText = "ID SINCRONIZADO! +4 CRISTAIS.";
+                inputField.value = ""; 
+            } else {
+                msg.style.color = "#ff3366";
+                msg.innerText = "CÓDIGO INVÁLIDO OU INEXISTENTE.";
+            }
+        }
+
+        // --- MOTOR GRÁFICO (STARS) ---
+        const canvas = document.getElementById('espaco');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function initStars() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<200; i++) {
+                stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, z: Math.random() * canvas.width, size: Math.random() * 1.5 });
+            }
+        }
+
+        function updateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for(let s of stars) {
+                s.z -= 2;
+                if(s.z <= 0) s.z = canvas.width;
+                let x = (s.x - canvas.width/2) * (canvas.width/s.z) + canvas.width/2;
+                let y = (s.y - canvas.height/2) * (canvas.width/s.z) + canvas.height/2;
+                let radius = s.size * (canvas.width/s.z);
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${1 - s.z/canvas.width})`;
+                ctx.fill();
+            }
+            requestAnimationFrame(updateStars);
+        }
+        window.onresize = initStars;
+    </script>
+</body>
+</html>

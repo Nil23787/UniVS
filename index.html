@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniVS | home</title>
+    <link rel="stylesheet" href="./src/css.css">
+</head>
+<body class="Home">
+
+    <canvas id="espaco"></canvas>
+
+    <div class="bar_menu">
+        <div class="user_stats">
+            <img src="./imgs/moon_cristal.png" alt="Moon Cristal" class="imo">
+            <span id="pontos-valor" class="points_counter">0</span>
+        </div>
+
+        <img src="./imgs/Bit-Games_logo.png" alt="Bit-Games" class="Bit_Games">
+
+        <div class="nav_buttons" style="position: absolute; right: 2%; display: flex; gap: 15px;">
+            <a href="./src/hrefs/pesquizar.html">
+                <img src="./imgs/pesquizar.png" alt="Pesquisar" class="ico" style="width: 40px;">
+            </a>
+            <a href="./src/hrefs/gifts.html">
+                <img src="./imgs/gifs_logo.png" alt="Gifts" class="ico" style="width: 40px;">
+            </a>
+            <a href="./src/hrefs/login.html">
+                <img src="./imgs/usoario_perfil.png" alt="Usoario" class="ico", style="width: 40px">
+            </a>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="games_grid">
+            <a href="./src/hrefs/White_Paint.html">
+                <img src="./imgs/WhitePaint_PNG.png" class="img_bg_GameApp" alt="White Paint">
+            </a>
+            <a href="./src/hrefs/Apples.html">
+                <img src="./imgs/Apples_PNG.png" class="img_bg_GameApp" alt="Apples">
+            </a>
+            <a href="./src/hrefs/CristalSnack.html">
+                <img src="./imgs/Cristal_snack.png" class="img_bg_GameApp" alt="Cristal Snack">
+            </a>
+        </div>
+    </div>
+
+    <script src="./src/javascript.js"></script>
+
+    <script type="module">
+        // Importando as ferramentas necessárias: Auth (Segurança) e Firestore (Banco de Dados)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyA1YeizxgrQm1miA8rQZXQCBCepdqZEZ6Y",
+          authDomain: "univs-5f408.firebaseapp.com",
+          projectId: "univs-5f408",
+          storageBucket: "univs-5f408.firebasestorage.app",
+          messagingSenderId: "1044813133461",
+          appId: "1:1044813133461:web:07cb61b836202c239d4d9c"
+        };
+      
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // Inicializa o Banco de Dados
+      
+        // Monitor de Estado (Quem está logado?)
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("Usuário logado:", user.email);
+                
+                // BUSCA OS PONTOS NA NUVEM
+                // Procuramos na pasta 'usuarios' um documento com o ID do seu e-mail
+                const userRef = doc(db, "usuarios", user.uid);
+                const docSnap = await getDoc(userRef);
+      
+                if (docSnap.exists()) {
+                    // Se achou no Firebase, atualiza o contador na tela
+                    const dados = docSnap.data();
+                    const contador = document.getElementById('pontos-valor');
+                    if (contador) {
+                        contador.innerText = dados.pontos || 0;
+                        // Opcional: sincroniza com o localStorage para o resto do site
+                        localStorage.setItem('userPoints', dados.pontos || 0);
+                    }
+                } else {
+                    console.log("Novo usuário! Iniciando com 0 cristais.");
+                }
+            } else {
+                // Se não estiver logado, manda para a página de login
+                window.location.href = "./src/hrefs/login.html";
+            }
+        });
+      </script>
+</body>
+</html>
